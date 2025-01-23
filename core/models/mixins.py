@@ -5,18 +5,28 @@ from sqlalchemy.orm import (
     Mapped,
     relationship,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .user import User
 
 
 class UserRelationMixin:
-
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users_table.id")
-    )
-
-    @declared_attr
-    def user(self):
-        return relationship("User")
+    _user_id_nullable: bool = False
+    _user_id_unique: bool = False
+    _user_back_populates: str | None = False
 
     @declared_attr
-    def user_id(self):
-        return
+    def user_id(cls):
+        return mapped_column(
+            ForeignKey("users.id"),
+            unique=cls._user_id_unique,
+            nullable=cls._user_id_nullable,
+        )
+
+    @declared_attr
+    def user(cls) -> Mapped["User"]:
+        return relationship(
+            "User",
+            back_populates=cls._user_back_populates,
+        )
